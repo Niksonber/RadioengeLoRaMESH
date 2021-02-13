@@ -1,8 +1,21 @@
+/**
+ * Author: Nikson Bernardes
+ * Based on: Radioenge Equipamentos de Telecomunicações LoRaMESH.h LoRaMESH.cpp for Arduíno and User manual
+ * Contains similar or equal passages those presents in LoRaMESH.h LoRaMESH.cpp by Radioenge Equipamentos de Telecomunicações
+ * Updated: 13/02/2021
+ * **/
+
 #ifndef RADIOENGELORAMESH
 #define RADIOENGELORAMESH
 
+#include <Arduino.h>
+#include <SoftwareSerial.h>
+
+#define MAX_PAYLOAD_SIZE 232
+#define MAX_BUFFER_SIZE 237
+
 // Set of constants for Radioenge LoRaMESH Module
-namespace LoRAMESHNS{
+namespace LoRaMESHNS{
 
     // Commands codes
     enum{
@@ -77,10 +90,55 @@ namespace LoRAMESHNS{
     typedef enum{
         MESH_OK,
         MESH_ERROR
-    } MeshStatus;
+    } mesh_status_t;
+
+    // Frame data struct
+    typedef struct{
+        uint8_t buffer[MAX_BUFFER_SIZE];
+        uint8_t size;
+        bool command;
+    } frame_t;
 
 };
 
+
+// Radioenge LoRaMESH Module handler class
+class LoRaMESH{
+public:
+    /// Constructor @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
+    LoRaMESH(uint8_t rxPin, uint8_t txPin, uint32_t baudRate);
+    
+    /// Prepare frame with header (ID(2B) + Command(1B)) and CRC as tail @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
+    LoRaMESHNS::mesh_status_t prepareFrame(uint16_t id, uint8_t command, uint8_t* payload, uint8_t payloadsize);
+    
+    
+    /// Send frame via serial (needs to be previously prepared) @return MESH_ERROR if some error occured else MESH_OK
+    LoRaMESHNS::mesh_status_t sendPacket();
+    
+ 
+    /// Receives a packet @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id[out] Device's ID @param command Command byte recived e.g. CMD_CLASSPOWER @param payload[out] Pointer to array where payload should be copied @param payloadsize[out] recived payload size @param timeout timeout in milliseonds
+    LoRaMESHNS::mesh_status_t receivePacket(uint16_t* id, uint8_t* command, uint8_t* payload, uint8_t* payloadSize, uint32_t timeout);
+    
+    
+    /// Gets the ID, NET and UNIQUE ID  @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id[out] Device's ID @param net[out] Configured NET @param uniqueId[out]:  Unique ID 
+    LoRaMESHNS::mesh_status_t localRead(uint16_t* id, uint16_t* net, uint32_t* uniqueId);
+    
+
+    /// Calc CRC-16 from buffer @return CRC-16 
+    /// @param  data: Pointer to the input buffer @param  length: Buffer size
+    uint16_t   calcCRC(uint8_t* data, uint16_t length);
+
+protected:
+    uint16_t _id, _net;
+    uint32_t _uniqueId;
+    LoRaMESHNS::frame_t _frame;
+    SoftwareSerial * _hSerial;
+
+    void serialFlush();
+};
 
 
 #endif
