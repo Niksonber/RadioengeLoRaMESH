@@ -106,7 +106,7 @@ namespace LoRaMESHNS{
 class LoRaMESH{
 public:
     /// Constructor @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
-    LoRaMESH(uint8_t rxPin, uint8_t txPin, uint32_t baudRate);
+    LoRaMESH(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600);
     
     /// Prepare frame with header (ID(2B) + Command(1B)) and CRC as tail @return MESH_ERROR if some error occured else MESH_OK
     /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
@@ -130,6 +130,11 @@ public:
     /// Calc CRC-16 from buffer @return CRC-16 
     /// @param  data: Pointer to the input buffer @param  length: Buffer size
     uint16_t   calcCRC(uint8_t* data, uint16_t length);
+
+    /// Sets low power mode @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id Device's ID @param mode Class mode of operation, e.g. classA @param window only applicable in class A 
+    LoRaMESHNS::mesh_status_t  setLowPowerMode(uint16_t id, uint8_t mode = LoRaMESHNS::CLASS_A, uint8_t window=LoRaMESHNS::WINDOW_10s);
+
 
 protected:
     uint16_t _id, _net;

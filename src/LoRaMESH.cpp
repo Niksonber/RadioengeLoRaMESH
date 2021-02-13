@@ -174,3 +174,34 @@ void LoRaMESH::serialFlush(){
         _hSerial->read();
     }
 }
+
+mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t window){ 
+    uint8_t bufferPayload[31];
+    uint8_t command, payloadSize = 4;
+    
+    // Assertion 
+    if(id > 1023) return MESH_ERROR;
+    if(_hSerial==NULL) return MESH_ERROR;
+
+    // Fill buffer - 0x00(1B) - mode(1B) - window(1B) - 0x00(1B) 
+    bufferPayload[0] = 0x00;
+    bufferPayload[1] = (uint8_t)mode;
+    bufferPayload[2] = (uint8_t)window;
+    bufferPayload[3] = 0x00;
+
+    if(prepareFrame(id, CMD_CLASSPOWER, &bufferPayload[0], payloadSize)!=MESH_OK)
+        return MESH_ERROR;
+
+    sendPacket();
+    serialFlush();
+    
+    // Receive response
+    if(receivePacket(&id, &command, &bufferPayload[0], &payloadSize, 5000)!=MESH_OK)
+        return MESH_ERROR;
+
+    // Checks if it is a response to the command
+    if(command!=CMD_CLASSPOWER)
+        return MESH_ERROR;
+
+    return MESH_OK;
+}
