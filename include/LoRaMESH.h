@@ -143,6 +143,10 @@ public:
     /// @param net network 
     LoRaMESHNS::mesh_status_t storeNet(uint16_t net);
 
+    /// Define LoRa params /// @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id id of device @param power @param bw band witdh e.g. BW125KHZ @param sf spreading factor [7-12] @param cr coding rate, eg CR45 for 4/5
+    LoRaMESHNS::mesh_status_t configLoRa(uint16_t id, uint8_t power = 20, uint8_t bw = LoRaMESHNS::BW125KHZ, uint8_t sf = 11, uint8_t cr = LoRaMESHNS::CR45);
+
 protected:
     uint16_t _id, _net;
     uint32_t _uniqueId;

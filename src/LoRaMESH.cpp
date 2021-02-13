@@ -274,3 +274,43 @@ mesh_status_t LoRaMESH::storeNet(uint16_t net){
         
     return MESH_OK;    
 }
+
+mesh_status_t LoRaMESH::configLoRa(uint16_t id, uint8_t power, uint8_t bw, uint8_t sf, uint8_t cr){
+    uint8_t bufferPayload[5];
+    uint8_t command, payloadSize = 5;
+
+    // Assertion
+    if(id > 1023 || bw > 2 || sf <7 || sf > 12 || cr < 1 || cr > 4)
+        return MESH_ERROR;
+    if(_hSerial==NULL) return MESH_ERROR;
+    
+    // Fill payload - write(1B) - power(1B) - bw(1B) - sf(1B) - cr(1B)
+    bufferPayload[0] = 0x01;
+    bufferPayload[1] = power;
+    bufferPayload[2] = bw;
+    bufferPayload[3] = sf;
+    bufferPayload[4] = cr;
+
+    if(prepareFrame(id, CMD_LORAPARAMETER, &bufferPayload[0], payloadSize)!=MESH_OK)
+        return MESH_ERROR;
+    
+    sendPacket();
+    serialFlush();
+    
+    // Receive response
+    if(receivePacket(&id, &command, &bufferPayload[0], &payloadSize, 5000)!=MESH_OK)
+        return MESH_ERROR;
+
+    // Checks if it is a response to the command
+    if(command!=CMD_LORAPARAMETER)
+        return MESH_ERROR;
+    
+    // Checks if the parameters is correct
+    if( bufferPayload[1]!=power ||
+        bufferPayload[2]!=bw ||
+        bufferPayload[3]!=sf ||
+        bufferPayload[4]!=cr)
+        return MESH_ERROR;   
+
+    return MESH_OK;
+}
