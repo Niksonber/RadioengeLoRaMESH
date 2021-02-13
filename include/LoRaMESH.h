@@ -139,7 +139,10 @@ public:
     /// @param id id of device @param net network, but isnt necessary @param uniqueID call LocalRead to get it 
     LoRaMESHNS::mesh_status_t storeID(uint16_t id, uint16_t net, uint32_t uniqueID);
     
-    
+    /// Define NET device @return MESH_ERROR if some error occured else MESH_OK
+    /// @param net network 
+    LoRaMESHNS::mesh_status_t storeNet(uint16_t net);
+
 protected:
     uint16_t _id, _net;
     uint32_t _uniqueId;

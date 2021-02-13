@@ -241,3 +241,36 @@ mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
 
     return MESH_OK;    
 }
+
+mesh_status_t LoRaMESH::storeNet(uint16_t net){
+    uint16_t id = 0;
+    uint8_t bufferPayload[31];
+    uint8_t command, payloadSize = 5;
+
+    // Assertion 
+    if(id > 1023 || net>1023) return MESH_ERROR;
+    if(_hSerial==NULL) return MESH_ERROR;
+    
+    //Fill payload - net(2B) - uid(4B) - 0x00(5B) - CRC(2B) 
+    bufferPayload[0] = 0x04;
+    bufferPayload[1] = (uint8_t)(net & 0xFF); // net low
+    bufferPayload[2] = (uint8_t)((net >> 8) & 0xFF); // net high (uper bound a 1023) 
+    for(uint8_t i=3; i<payloadSize; i++)
+        bufferPayload[i] = (uint8_t)0x00;
+        
+    if(prepareFrame(id, CMD_WRITEPASSWORD, &bufferPayload[0], payloadSize)!=MESH_OK)
+        return MESH_ERROR;
+    
+    sendPacket();
+    serialFlush();
+    
+    // Receive response
+    if(receivePacket(&id, &command, &bufferPayload[0], &payloadSize, 5000)!=MESH_OK)
+        return MESH_ERROR;
+    
+    // Checks if it is a response to the command
+    if(command!=CMD_WRITEPASSWORD)
+        return MESH_ERROR;
+        
+    return MESH_OK;    
+}
