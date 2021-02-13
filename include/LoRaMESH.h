@@ -48,6 +48,31 @@ namespace LoRAMESHNS{
         CR48      // Coding rate of 4/8
     };
 
+    // GPIO type
+    typedef enum{
+        GPIO0,
+        GPIO1,
+        GPIO2,
+        GPIO3,
+        GPIO4,
+        GPIO5,
+        GPIO6,
+        GPIO7
+    } gpio_t;
+
+    // GPIO mode
+    enum{
+        DIGITAL_IN,
+        DIGITAL_OUT,
+        ANALOG_IN = 3
+    };
+
+    enum{
+        PULL_OFF,
+        PULLUP,
+        PULLDOWN
+    };
+
     // Indicates whether the task ended successfully or failed 
     typedef enum{
         MESH_OK,
