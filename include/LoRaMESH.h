@@ -23,29 +23,29 @@ namespace LoRAMESHNS{
 
     // A class type define the energy economy mode 
     enum{
-        classA, // Deep sleep mode
-        classB, // Undocumented
-        classC  // Normal operation mode
+        CLASS_A, // Deep sleep mode
+        CLASS_B, // Undocumented
+        CLASS_C  // Normal operation mode
     };
  
     // Only applicable in class A mode
     enum{
-        window5s, // Define the interval of  5s when the windown still open for recive before deep sleep mode
-        window10s,// Define the interval of 10s when the windown still open for recive before deep sleep mode
-        window15s // Define the interval of 15s when the windown still open for recive before deep sleep mode
+        WINDOW_5s, // Define the interval of  5s when the windown still open for recive before deep sleep mode
+        WINDOW_10s,// Define the interval of 10s when the windown still open for recive before deep sleep mode
+        WINDOW_15s // Define the interval of 15s when the windown still open for recive before deep sleep mode
     };
 
     enum{
-        bw125khz, // bandwitdh of 125 khz
-        bw250khz, // bandwitdh of 250 khz
-        bw500khz  // bandwitdh of 500 khz
+        BW125KHZ, // bandwitdh of 125 khz
+        BW250KHZ, // bandwitdh of 250 khz
+        BW500KHZ  // bandwitdh of 500 khz
     };
 
     enum{
-        cr45 = 1, // Coding rate of 4/5
-        cr46,     // Coding rate of 4/6
-        cr47,     // Coding rate of 4/7
-        cr48      // Coding rate of 4/8
+        CR45 = 1, // Coding rate of 4/5
+        CR46,     // Coding rate of 4/6
+        CR47,     // Coding rate of 4/7
+        CR48      // Coding rate of 4/8
     };
 
     // Indicates whether the task ended successfully or failed 
