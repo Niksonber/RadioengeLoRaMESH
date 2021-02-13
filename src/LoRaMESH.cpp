@@ -205,3 +205,39 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
 
     return MESH_OK;
 }
+
+mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
+    uint8_t bufferPayload[31];
+    uint8_t payloadSize = 11;
+    uint8_t command;
+
+    // Assertion 
+    if(id > 1023 || net>1023)
+        return MESH_ERROR;
+
+    // Fill buffer - net(2B) - uid(4B) - 0x00(5B) - CRC(2B) 
+    bufferPayload[0] = (uint8_t)(net & 0xFF); // net low
+    bufferPayload[1] = (uint8_t)((net >> 8) & 0xFF); // net high (uper bound a 1023) 
+    bufferPayload[2] = (uint8_t)(uniqueID & 0xFF);
+    bufferPayload[3] = (uint8_t)((uniqueID >> 8) & 0xFF);
+    bufferPayload[4] = (uint8_t)((uniqueID >> 16) & 0xFF);
+    bufferPayload[5] = (uint8_t)((uniqueID >> 24) & 0xFF);
+    for(uint8_t i=6; i<payloadSize; i++)
+        bufferPayload[i] = (uint8_t)0x00;
+        
+    if(prepareFrame(id, CMD_WRITECONFIG, &bufferPayload[0], payloadSize)!=MESH_OK)
+        return MESH_ERROR;
+    
+    sendPacket();
+    serialFlush();
+    
+    // Receive response
+    if(receivePacket(&id, &command, &bufferPayload[0], &payloadSize, 5000)!=MESH_OK)
+        return MESH_ERROR;
+
+    // Checks if it is a response to the command
+    if(command!=CMD_WRITECONFIG)
+        return MESH_ERROR;
+
+    return MESH_OK;    
+}

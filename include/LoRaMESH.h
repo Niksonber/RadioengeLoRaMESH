@@ -135,7 +135,11 @@ public:
     /// @param id Device's ID @param mode Class mode of operation, e.g. classA @param window only applicable in class A 
     LoRaMESHNS::mesh_status_t  setLowPowerMode(uint16_t id, uint8_t mode = LoRaMESHNS::CLASS_A, uint8_t window=LoRaMESHNS::WINDOW_10s);
 
-
+    /// Define ID device @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id id of device @param net network, but isnt necessary @param uniqueID call LocalRead to get it 
+    LoRaMESHNS::mesh_status_t storeID(uint16_t id, uint16_t net, uint32_t uniqueID);
+    
+    
 protected:
     uint16_t _id, _net;
     uint32_t _uniqueId;
