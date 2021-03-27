@@ -1,0 +1,26 @@
+{
+    "name": "RadioengeLoRaMESH",
+    "version": "1.0.0",
+    "description": "Radioenge LoRaMESH Module handler for arduino Framework, based on Radioenge library.",
+    "keywords": "Radioenge, LoRaMesh",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/Niksonber/RadioengeLoRaMESH.git"
+    },
+    "authors":
+    [
+      {
+        "name": "Nikson Bernardes",
+        "email": "niksonber@gmail.com",
+        "maintainer": true
+      },
+      {
+        "name": "Radioenge",
+        "url": "https://www.radioenge.com.br/solucoes/iot/34-modulo-loramesh.html"
+      }
+    ],
+    "frameworks": "arduino",
+    "platforms": "atmelavr"
+  }
+  
