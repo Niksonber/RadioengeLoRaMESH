@@ -2,14 +2,14 @@
  * Author: Nikson Bernardes
  * Based on: Radioenge Equipamentos de Telecomunicações LoRaMESH.h LoRaMESH.cpp for Arduíno and User manual
  * Contains similar or equal passages those presents in LoRaMESH.h LoRaMESH.cpp by Radioenge Equipamentos de Telecomunicações
- * Updated: 13/02/2021
+ * Updated: 27/03/2021
  * **/
 
 #ifndef RADIOENGELORAMESH
 #define RADIOENGELORAMESH
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+#include <HardwareSerial.h>
 
 #define MAX_PAYLOAD_SIZE 232
 #define MAX_BUFFER_SIZE 237
@@ -82,8 +82,8 @@ namespace LoRaMESHNS{
 
     enum{
         PULL_OFF,
-        PULLUP,
-        PULLDOWN
+        PULLUP_MOTE,
+        PULLDOWN_MOTE
     };
 
     // Indicates whether the task ended successfully or failed 
@@ -99,6 +99,7 @@ namespace LoRaMESHNS{
         bool command;
     } frame_t;
 
+    const uint16_t broadcastID = 0x7FF; //2047
 };
 
 
@@ -108,8 +109,8 @@ public:
     /// Constructor, initialize variables  
     LoRaMESH();
     
-    /// Begin software serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
-    void begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600);
+    /// Begin hardware serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
+    void begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600, uint8_t uart = 2);
 
     /// Prepare frame with header (ID(2B) + Command(1B)) and CRC as tail @return MESH_ERROR if some error occured else MESH_OK
     /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
@@ -142,6 +143,13 @@ public:
     /// @param id id of device @param net network, but isnt necessary @param uniqueID call LocalRead to get it 
     LoRaMESHNS::mesh_status_t storeID(uint16_t id, uint16_t net, uint32_t uniqueID);
     
+
+
+    /// Define ID device @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id id of device
+    LoRaMESHNS::mesh_status_t storeID(uint16_t id);
+    
+
     /// Define NET device @return MESH_ERROR if some error occured else MESH_OK
     /// @param net network 
     LoRaMESHNS::mesh_status_t storeNet(uint16_t net);
@@ -150,11 +158,14 @@ public:
     /// @param id id of device @param power @param bw band witdh e.g. BW125KHZ @param sf spreading factor [7-12] @param cr coding rate, eg CR45 for 4/5
     LoRaMESHNS::mesh_status_t configLoRa(uint16_t id, uint8_t power = 20, uint8_t bw = LoRaMESHNS::BW125KHZ, uint8_t sf = 11, uint8_t cr = LoRaMESHNS::CR45);
 
+    inline uint16_t getID(){return _id;}
+
 protected:
     uint16_t _id, _net;
     uint32_t _uniqueId;
-    LoRaMESHNS::frame_t _frame;
-    SoftwareSerial * _hSerial;
+    LoRaMESHNS::frame_t _frame, _rcvFrame;
+    HardwareSerial * _hSerial;
+    bool _begin;
 
     void serialFlush();
 };

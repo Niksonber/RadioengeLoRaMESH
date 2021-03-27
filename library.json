@@ -1,6 +1,6 @@
 {
     "name": "RadioengeLoRaMESH",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Radioenge LoRaMESH Module handler for arduino Framework, based on Radioenge library.",
     "keywords": "Radioenge, LoRaMesh",
     "repository":
@@ -21,6 +21,6 @@
       }
     ],
     "frameworks": "arduino",
-    "platforms": "atmelavr"
+    "platforms": "espressif32"
   }
   
