@@ -105,9 +105,12 @@ namespace LoRaMESHNS{
 // Radioenge LoRaMESH Module handler class
 class LoRaMESH{
 public:
-    /// Constructor @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
-    LoRaMESH(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600);
+    /// Constructor, initialize variables  
+    LoRaMESH();
     
+    /// Begin software serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
+    void begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600);
+
     /// Prepare frame with header (ID(2B) + Command(1B)) and CRC as tail @return MESH_ERROR if some error occured else MESH_OK
     /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
     LoRaMESHNS::mesh_status_t prepareFrame(uint16_t id, uint8_t command, uint8_t* payload, uint8_t payloadsize);

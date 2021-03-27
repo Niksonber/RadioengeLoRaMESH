@@ -2,7 +2,11 @@
 
 using namespace LoRaMESHNS;
 
-LoRaMESH::LoRaMESH(uint8_t rxPin, uint8_t txPin, uint32_t baudRate){
+LoRaMESH::LoRaMESH():_id(-1), _net(-1), _uniqueId(-1),_hSerial(NULL){
+    memset(&_frame.buffer[0], 0, MAX_BUFFER_SIZE);
+}
+
+void LoRaMESH::begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600){
   static SoftwareSerial radioSerialCommands(rxPin, txPin);
   radioSerialCommands.begin(baudRate);
   _hSerial = &radioSerialCommands;
@@ -10,7 +14,6 @@ LoRaMESH::LoRaMESH(uint8_t rxPin, uint8_t txPin, uint32_t baudRate){
   /* Run local read */
   localRead(&_id, &_net, &_uniqueId);
 }
-
 
 
 mesh_status_t LoRaMESH::localRead(uint16_t *id, uint16_t *net, uint32_t *uniqueId){
@@ -206,6 +209,10 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
     return MESH_OK;
 }
 
+
+mesh_status_t LoRaMESH::storeID(uint16_t id){
+    return storeID(id, _net, _uniqueId);
+}
 mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
     uint8_t bufferPayload[31];
     uint8_t payloadSize = 11;
