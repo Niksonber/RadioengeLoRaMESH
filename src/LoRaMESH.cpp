@@ -12,7 +12,15 @@ void LoRaMESH::begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600){
   _hSerial = &radioSerialCommands;
 
   /* Run local read */
-  localRead(&_id, &_net, &_uniqueId);
+  while(localRead(&_id, &_net, &_uniqueId)!=MESH_OK){
+      delay(1000);
+  }
+  Serial.print("Previus Stored: id: ");
+  Serial.print(_id);
+  Serial.print(" net: ");
+  Serial.print(_net);
+  Serial.print(" unique id: ");
+  Serial.println(_uniqueId);
 }
 
 
@@ -100,7 +108,13 @@ mesh_status_t LoRaMESH::sendPacket(){
     // Asserts parameters
     if(_frame.size == 0) return MESH_ERROR;
     if((_hSerial == NULL) && (_frame.command)) return MESH_ERROR;
-
+    
+    Serial.print("Sending frame: ");
+    for(uint8_t i = 0; i < _frame.size; i++){
+        Serial.print(_frame.buffer[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
     if(_frame.command)
         _hSerial->write(_frame.buffer, _frame.size);
     
@@ -147,6 +161,13 @@ mesh_status_t LoRaMESH::receivePacket(uint16_t* id, uint8_t* command, uint8_t* p
     *command = _frame.buffer[2];
     *payloadSize = i-5;
     memcpy(payload, &_frame.buffer[3], i-5);
+
+    Serial.print("Recived frame: ");
+    for(uint8_t j = 0; j < i; j++){
+        Serial.print(_frame.buffer[j]);
+        Serial.print(" ");
+    }
+    Serial.println();
 
     return MESH_OK;
 }
@@ -209,10 +230,6 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
     return MESH_OK;
 }
 
-
-mesh_status_t LoRaMESH::storeID(uint16_t id){
-    return storeID(id, _net, _uniqueId);
-}
 mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
     uint8_t bufferPayload[31];
     uint8_t payloadSize = 11;
@@ -246,7 +263,13 @@ mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
     if(command!=CMD_WRITECONFIG)
         return MESH_ERROR;
 
+    _id = id;
+    
     return MESH_OK;    
+}
+
+mesh_status_t LoRaMESH::storeID(uint16_t id){
+    return storeID(id, _net, _uniqueId);
 }
 
 mesh_status_t LoRaMESH::storeNet(uint16_t net){
@@ -278,7 +301,9 @@ mesh_status_t LoRaMESH::storeNet(uint16_t net){
     // Checks if it is a response to the command
     if(command!=CMD_WRITEPASSWORD)
         return MESH_ERROR;
-        
+
+    _net = net;
+
     return MESH_OK;    
 }
 
