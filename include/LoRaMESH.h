@@ -142,6 +142,11 @@ public:
     /// @param id id of device @param net network, but isnt necessary @param uniqueID call LocalRead to get it 
     LoRaMESHNS::mesh_status_t storeID(uint16_t id, uint16_t net, uint32_t uniqueID);
     
+    /// Define ID device @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id id of device 
+    LoRaMESHNS::mesh_status_t storeID(uint16_t id);
+        
+    
     /// Define NET device @return MESH_ERROR if some error occured else MESH_OK
     /// @param net network 
     LoRaMESHNS::mesh_status_t storeNet(uint16_t net);
@@ -149,6 +154,12 @@ public:
     /// Define LoRa params /// @return MESH_ERROR if some error occured else MESH_OK
     /// @param id id of device @param power @param bw band witdh e.g. BW125KHZ @param sf spreading factor [7-12] @param cr coding rate, eg CR45 for 4/5
     LoRaMESHNS::mesh_status_t configLoRa(uint16_t id, uint8_t power = 20, uint8_t bw = LoRaMESHNS::BW125KHZ, uint8_t sf = 11, uint8_t cr = LoRaMESHNS::CR45);
+
+    // Return local ID 
+    inline uint16_t getID(){return _id;}
+    
+    // Return Net
+    inline uint16_t getNet(){return _net;}
 
 protected:
     uint16_t _id, _net;
