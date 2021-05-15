@@ -99,6 +99,7 @@ namespace LoRaMESHNS{
         bool command;
     } frame_t;
 
+    const uint16_t broadcastID = 0x7FF; //2047
 };
 
 
@@ -108,7 +109,7 @@ public:
     /// Constructor, initialize variables  
     LoRaMESH();
     
-    /// Begin software serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
+    /// Begin software serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600
     void begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600);
 
     /// Prepare frame with header (ID(2B) + Command(1B)) and CRC as tail @return MESH_ERROR if some error occured else MESH_OK
@@ -142,11 +143,13 @@ public:
     /// @param id id of device @param net network, but isnt necessary @param uniqueID call LocalRead to get it 
     LoRaMESHNS::mesh_status_t storeID(uint16_t id, uint16_t net, uint32_t uniqueID);
     
+
+
     /// Define ID device @return MESH_ERROR if some error occured else MESH_OK
-    /// @param id id of device 
+    /// @param id id of device
     LoRaMESHNS::mesh_status_t storeID(uint16_t id);
-        
     
+
     /// Define NET device @return MESH_ERROR if some error occured else MESH_OK
     /// @param net network 
     LoRaMESHNS::mesh_status_t storeNet(uint16_t net);

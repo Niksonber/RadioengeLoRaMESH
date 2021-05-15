@@ -71,7 +71,7 @@ mesh_status_t LoRaMESH::localRead(uint16_t *id, uint16_t *net, uint32_t *uniqueI
 mesh_status_t LoRaMESH::prepareFrame(uint16_t id, uint8_t command, uint8_t* payload, uint8_t payloadSize){
     // Asserts parameters
     if(payload == NULL) return MESH_ERROR;
-    if(id > 1023) return MESH_ERROR;
+    if(id > 0xFFF) return MESH_ERROR;
 
     uint16_t crc = 0;
 
@@ -79,7 +79,7 @@ mesh_status_t LoRaMESH::prepareFrame(uint16_t id, uint8_t command, uint8_t* payl
 
     // Loads the target's ID 
     _frame.buffer[0] = id&0xFF;
-    _frame.buffer[1] = (id>>8)&0x03;
+    _frame.buffer[1] = (id>>8)&0xFFF;
 
     // Loads the command 
     _frame.buffer[2] = command;
@@ -108,7 +108,7 @@ mesh_status_t LoRaMESH::sendPacket(){
     // Asserts parameters
     if(_frame.size == 0) return MESH_ERROR;
     if((_hSerial == NULL) && (_frame.command)) return MESH_ERROR;
-    
+
     Serial.print("Sending frame: ");
     for(uint8_t i = 0; i < _frame.size; i++){
         Serial.print(_frame.buffer[i]);
@@ -204,7 +204,7 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
     uint8_t command, payloadSize = 4;
     
     // Assertion 
-    if(id > 1023) return MESH_ERROR;
+    if(id > 0xFFF) return MESH_ERROR;
     if(_hSerial==NULL) return MESH_ERROR;
 
     // Fill buffer - 0x00(1B) - mode(1B) - window(1B) - 0x00(1B) 
@@ -230,13 +230,17 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
     return MESH_OK;
 }
 
+mesh_status_t LoRaMESH::storeID(uint16_t id){
+    return storeID(id, _net, _uniqueId);
+}
+
 mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
     uint8_t bufferPayload[31];
     uint8_t payloadSize = 11;
     uint8_t command;
 
     // Assertion 
-    if(id > 1023 || net>1023)
+    if(id > 0xFFF || net>0xFFF)
         return MESH_ERROR;
 
     // Fill buffer - net(2B) - uid(4B) - 0x00(5B) - CRC(2B) 
@@ -264,12 +268,7 @@ mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
         return MESH_ERROR;
 
     _id = id;
-    
     return MESH_OK;    
-}
-
-mesh_status_t LoRaMESH::storeID(uint16_t id){
-    return storeID(id, _net, _uniqueId);
 }
 
 mesh_status_t LoRaMESH::storeNet(uint16_t net){
@@ -278,13 +277,13 @@ mesh_status_t LoRaMESH::storeNet(uint16_t net){
     uint8_t command, payloadSize = 5;
 
     // Assertion 
-    if(id > 1023 || net>1023) return MESH_ERROR;
+    if(id > 0xFFF || net>0xFFF) return MESH_ERROR;
     if(_hSerial==NULL) return MESH_ERROR;
     
     //Fill payload - net(2B) - uid(4B) - 0x00(5B) - CRC(2B) 
     bufferPayload[0] = 0x04;
     bufferPayload[1] = (uint8_t)(net & 0xFF); // net low
-    bufferPayload[2] = (uint8_t)((net >> 8) & 0xFF); // net high (uper bound a 1023) 
+    bufferPayload[2] = (uint8_t)((net >> 8) & 0xFF); // net high (uper bound a 0xFFFF) 
     for(uint8_t i=3; i<payloadSize; i++)
         bufferPayload[i] = (uint8_t)0x00;
         
@@ -301,9 +300,8 @@ mesh_status_t LoRaMESH::storeNet(uint16_t net){
     // Checks if it is a response to the command
     if(command!=CMD_WRITEPASSWORD)
         return MESH_ERROR;
-
+        
     _net = net;
-
     return MESH_OK;    
 }
 
@@ -312,7 +310,7 @@ mesh_status_t LoRaMESH::configLoRa(uint16_t id, uint8_t power, uint8_t bw, uint8
     uint8_t command, payloadSize = 5;
 
     // Assertion
-    if(id > 1023 || bw > 2 || sf <7 || sf > 12 || cr < 1 || cr > 4)
+    if(id > 0xFFF || bw > 2 || sf <7 || sf > 12 || cr < 1 || cr > 4)
         return MESH_ERROR;
     if(_hSerial==NULL) return MESH_ERROR;
     
