@@ -100,6 +100,7 @@ namespace LoRaMESHNS{
     } frame_t;
 
     const uint16_t broadcastID = 0x7FF; //2047
+    const uint16_t MAX_VALUE = 0xFFF;
 };
 
 
@@ -158,6 +159,11 @@ public:
     /// @param id id of device @param power @param bw band witdh e.g. BW125KHZ @param sf spreading factor [7-12] @param cr coding rate, eg CR45 for 4/5
     LoRaMESHNS::mesh_status_t configLoRa(uint16_t id, uint8_t power = 20, uint8_t bw = LoRaMESHNS::BW125KHZ, uint8_t sf = 11, uint8_t cr = LoRaMESHNS::CR45);
 
+    /// Read info as noise level, trace router and RSSI /// @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id id of device
+    LoRaMESHNS::mesh_status_t getInfo(uint16_t id, uint8_t command, uint8_t *data, uint8_t *size);
+
+
     // Return local ID 
     inline uint16_t getID(){return _id;}
     
@@ -171,8 +177,24 @@ protected:
     HardwareSerial * _hSerial;
     bool _begin;
 
+    /// Prepare frame, send and check if respose is the same command @return MESH_ERROR if some error occured else MESH_OK
+    /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
+    LoRaMESHNS::mesh_status_t request(uint16_t id, uint8_t command, uint8_t *payload, uint8_t *size);    
+
     void serialFlush();
+    void print(uint8_t * buffer, size_t size);
+    inline void uint2buffer(uint8_t * buffer, uint16_t value);
+    inline void uint2buffer(uint8_t * buffer, uint32_t value);
 };
 
+void LoRaMESH::uint2buffer(uint8_t * buffer, uint16_t value){
+    uint16_t * ptr = (uint16_t *) buffer;
+    (*ptr) = value;
+}
+
+void LoRaMESH::uint2buffer(uint8_t * buffer, uint32_t value){
+    uint32_t * ptr = (uint32_t *) buffer;
+    (*ptr) = value;
+}
 
 #endif
