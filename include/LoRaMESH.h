@@ -2,14 +2,19 @@
  * Author: Nikson Bernardes
  * Based on: Radioenge Equipamentos de Telecomunicações LoRaMESH.h LoRaMESH.cpp for Arduíno and User manual
  * Contains similar or equal passages those presents in LoRaMESH.h LoRaMESH.cpp by Radioenge Equipamentos de Telecomunicações
- * Updated: 27/03/2021
+ * Updated: 25/05/2021
  * **/
 
 #ifndef RADIOENGELORAMESH
 #define RADIOENGELORAMESH
 
 #include <Arduino.h>
-#include <HardwareSerial.h>
+
+#if ESP32
+    #include <HardwareSerial.h>
+#else
+    #include <SoftwareSerial.h>
+#endif
 
 #define MAX_PAYLOAD_SIZE 232
 #define MAX_BUFFER_SIZE 237
@@ -110,18 +115,16 @@ public:
     /// Constructor, initialize variables  
     LoRaMESH();
     
-    /// Begin hardware serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
+    /// Begin hardware or software serial with module @param rxPin RX pin @param txPin TX pin  @param baudRate baudrate between 9600 and 57600    
     void begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate=9600, uint8_t uart = 2);
 
     /// Prepare frame with header (ID(2B) + Command(1B)) and CRC as tail @return MESH_ERROR if some error occured else MESH_OK
     /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
     LoRaMESHNS::mesh_status_t prepareFrame(uint16_t id, uint8_t command, uint8_t* payload, uint8_t payloadsize);
     
-    
     /// Send frame via serial (needs to be previously prepared) @return MESH_ERROR if some error occured else MESH_OK
     LoRaMESHNS::mesh_status_t sendPacket();
     
- 
     /// Receives a packet @return MESH_ERROR if some error occured else MESH_OK
     /// @param id[out] Device's ID @param command Command byte recived e.g. CMD_CLASSPOWER @param payload[out] Pointer to array where payload should be copied @param payloadsize[out] recived payload size @param timeout timeout in milliseonds
     LoRaMESHNS::mesh_status_t receivePacket(uint16_t* id, uint8_t* command, uint8_t* payload, uint8_t* payloadSize, uint32_t timeout);
@@ -143,8 +146,6 @@ public:
     /// Define ID device @return MESH_ERROR if some error occured else MESH_OK
     /// @param id id of device @param net network, but isnt necessary @param uniqueID call LocalRead to get it 
     LoRaMESHNS::mesh_status_t storeID(uint16_t id, uint16_t net, uint32_t uniqueID);
-    
-
 
     /// Define ID device @return MESH_ERROR if some error occured else MESH_OK
     /// @param id id of device
@@ -169,13 +170,18 @@ public:
     
     // Return Net
     inline uint16_t getNet(){return _net;}
-    
+
 protected:
     uint16_t _id, _net;
     uint32_t _uniqueId;
     LoRaMESHNS::frame_t _frame, _rcvFrame;
-    HardwareSerial * _hSerial;
     bool _begin;
+    
+    #if ESP32
+        HardwareSerial * _hSerial;
+    #else
+        SoftwareSerial * _hSerial;
+    #endif
 
     /// Prepare frame, send and check if respose is the same command @return MESH_ERROR if some error occured else MESH_OK
     /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size

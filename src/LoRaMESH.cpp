@@ -2,29 +2,35 @@
 
 using namespace LoRaMESHNS;
 
-LoRaMESH::LoRaMESH():_id(-1), _net(-1), _uniqueId(-1),_hSerial(NULL), _begin(false){
-    memset(&_frame.buffer[0], 0, MAX_BUFFER_SIZE);
-    memset(&_rcvFrame.buffer[0], 0, MAX_BUFFER_SIZE);
+LoRaMESH::LoRaMESH():_id(-1), _net(-1), _uniqueId(-1), _begin(false), _hSerial(NULL){
+    memset(_frame.buffer, 0, MAX_BUFFER_SIZE);
+    memset(_rcvFrame.buffer, 0, MAX_BUFFER_SIZE);
 
 }
 
 void LoRaMESH::begin(uint8_t rxPin, uint8_t txPin, uint32_t baudRate, uint8_t uart){
-  if(_begin) return;
-  static HardwareSerial radioSerialCommands(uart);
-  radioSerialCommands.begin(baudRate, SERIAL_8N1, rxPin, txPin);
-  _hSerial = &radioSerialCommands;
+    if(_begin) return;
 
-  /* Run local read */
-  while(localRead(&_id, &_net, &_uniqueId)!=MESH_OK){
-    delay(1000);
-  }
-  Serial.print("previus stored: id: ");
-  Serial.print(_id);
-  Serial.print(" net: ");
-  Serial.print(_net);
-  Serial.print(" uniqueID: ");
-  Serial.println(_uniqueId);
-  _begin = true;
+    #if ESP32
+        static HardwareSerial radioSerialCommands(uart);
+        radioSerialCommands.begin(baudRate, SERIAL_8N1, rxPin, txPin);
+    #else
+        static SoftwareSerial radioSerialCommands(rxPin, txPin);
+        radioSerialCommands.begin(baudRate);
+    #endif
+    _hSerial = &radioSerialCommands;
+
+    /* Run local read */
+    while(localRead(&_id, &_net, &_uniqueId)!=MESH_OK){
+        delay(1000);
+    }
+    Serial.print("previus stored: id: ");
+    Serial.print(_id);
+    Serial.print(" net: ");
+    Serial.print(_net);
+    Serial.print(" uniqueID: ");
+    Serial.println(_uniqueId);
+    _begin = true;
 }
 
 
@@ -110,6 +116,10 @@ mesh_status_t LoRaMESH::receivePacket(uint16_t* id, uint8_t* command, uint8_t* p
     if(size == NULL) return MESH_ERROR;
     if(_hSerial == NULL) return MESH_ERROR;
 
+    #ifndef ESP32
+        if(!_hSerial->isListening()) _hSerial->listen();
+    #endif
+
     //Waits for reception
     while( ((timeout > 0 ) || (i > 0)) && (waitNextByte > 0) ){
         if(_hSerial->available() > 0){
@@ -181,7 +191,7 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
 }
 
 mesh_status_t LoRaMESH::storeID(uint16_t id){
-    return storeID(id, 0, _uniqueId);
+    return storeID(id, _net, _uniqueId);
 }
 
 mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
@@ -236,13 +246,13 @@ mesh_status_t LoRaMESH::configLoRa(uint16_t id, uint8_t power, uint8_t bw, uint8
 
     if(request(id, CMD_LORAPARAMETER, payload, &size)!=MESH_OK)
         return MESH_ERROR;
-    
+
     // Checks if the parameters is correct
     if( payload[1]!=power ||
         payload[2]!=bw ||
         payload[3]!=sf ||
         payload[4]!=cr)
-        return MESH_ERROR;   
+        return MESH_ERROR;
 
     return MESH_OK;
 }
@@ -260,7 +270,7 @@ mesh_status_t LoRaMESH::request(uint16_t id, uint8_t command, uint8_t *payload, 
     uint8_t rcvCommand;
 
     if (_hSerial==NULL) return MESH_ERROR;
-    
+
     if (id > MAX_VALUE)
         return MESH_ERROR;
 
