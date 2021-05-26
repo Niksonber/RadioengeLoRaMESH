@@ -16,8 +16,8 @@
     #include <SoftwareSerial.h>
 #endif
 
-#define MAX_PAYLOAD_SIZE 232
-#define MAX_BUFFER_SIZE 237
+#define MAX_PAYLOAD_SIZE 59
+#define MAX_BUFFER_SIZE MAX_PAYLOAD_SIZE + 5
 
 // Set of constants for Radioenge LoRaMESH Module
 namespace LoRaMESHNS{
@@ -129,12 +129,10 @@ public:
     /// @param id[out] Device's ID @param command Command byte recived e.g. CMD_CLASSPOWER @param payload[out] Pointer to array where payload should be copied @param payloadsize[out] recived payload size @param timeout timeout in milliseonds
     LoRaMESHNS::mesh_status_t receivePacket(uint16_t* id, uint8_t* command, uint8_t* payload, uint8_t* payloadSize, uint32_t timeout);
     
-    
     /// Gets the ID, NET and UNIQUE ID  @return MESH_ERROR if some error occured else MESH_OK
     /// @param id[out] Device's ID @param net[out] Configured NET @param uniqueId[out]:  Unique ID 
     LoRaMESHNS::mesh_status_t localRead(uint16_t* id, uint16_t* net, uint32_t* uniqueId);
     
-
     /// Calc CRC-16 from buffer @return CRC-16 
     /// @param  data: Pointer to the input buffer @param  length: Buffer size
     uint16_t   calcCRC(uint8_t* data, uint16_t length);
@@ -151,7 +149,6 @@ public:
     /// @param id id of device
     LoRaMESHNS::mesh_status_t storeID(uint16_t id);
     
-
     /// Define NET device @return MESH_ERROR if some error occured else MESH_OK
     /// @param net network 
     LoRaMESHNS::mesh_status_t storeNet(uint16_t net);
@@ -163,7 +160,6 @@ public:
     /// Read info as noise level, trace router and RSSI /// @return MESH_ERROR if some error occured else MESH_OK
     /// @param id id of device
     LoRaMESHNS::mesh_status_t getInfo(uint16_t id, uint8_t command, uint8_t *data, uint8_t *size);
-
 
     // Return local ID 
     inline uint16_t getID(){return _id;}
