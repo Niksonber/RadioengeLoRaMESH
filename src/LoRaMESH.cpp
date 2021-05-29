@@ -142,6 +142,7 @@ mesh_status_t LoRaMESH::receivePacket(uint16_t* id, uint8_t* command, uint8_t* p
     id = (uint16_t *) &_rcvFrame.buffer[0];
     *command = _rcvFrame.buffer[2];
     *size = i-5;
+    _rcvFrame.size = i;
     memcpy(payload, &_rcvFrame.buffer[3], i-5);
     
     Serial.print("Recived frame: ");
