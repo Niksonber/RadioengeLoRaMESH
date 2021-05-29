@@ -2,7 +2,7 @@
 
 using namespace LoRaMESHNS;
 
-LoRaMESH::LoRaMESH():_id(-1), _net(-1), _uniqueId(-1), _begin(false), _hSerial(NULL){
+LoRaMESH::LoRaMESH():_id(0), _net(-1), _uniqueId(-1), _begin(false), _hSerial(NULL){
     memset(_frame.buffer, 0, MAX_BUFFER_SIZE);
     memset(_rcvFrame.buffer, 0, MAX_BUFFER_SIZE);
 
@@ -42,11 +42,11 @@ mesh_status_t LoRaMESH::localRead(uint16_t *id, uint16_t *net, uint32_t *uniqueI
     if(uniqueId == NULL) return MESH_ERROR;
     if(_hSerial == NULL) return MESH_ERROR;
 
-    if (request(0, CMD_LOCALREAD, payload, &size) != MESH_OK)
+    if (request(id, CMD_LOCALREAD, payload, &size) != MESH_OK)
         return MESH_ERROR;
 
-    net = (uint16_t *) &payload[0];
-    uniqueId = (uint32_t *) &payload[2];
+    *net = *((uint16_t *) &payload[0]);
+    *uniqueId = *((uint32_t *) &payload[2]);
 
     // update interanal variables
     _id = *id;
@@ -107,7 +107,7 @@ mesh_status_t LoRaMESH::sendPacket(){
 mesh_status_t LoRaMESH::receivePacket(uint16_t* id, uint8_t* command, uint8_t* payload, uint8_t* size, uint32_t timeout){
     uint16_t waitNextByte = 500;
     uint8_t i = 0;
-    uint16_t crc = 0;
+    uint16_t *rcvId, crc = 0;
 
     // Assert parameters 
     if(id == NULL) return MESH_ERROR;
@@ -139,7 +139,8 @@ mesh_status_t LoRaMESH::receivePacket(uint16_t* id, uint8_t* command, uint8_t* p
     if(calcCRC(&_rcvFrame.buffer[0], i-2) != crc) return MESH_ERROR;
 
     // Copies ID, command, size, payload
-    id = (uint16_t *) &_rcvFrame.buffer[0];
+    rcvId = (uint16_t *) &_rcvFrame.buffer[0];
+    *id = *rcvId;
     *command = _rcvFrame.buffer[2];
     *size = i-5;
     _rcvFrame.size = i;
@@ -185,14 +186,14 @@ mesh_status_t LoRaMESH::setLowPowerMode(uint16_t id, uint8_t mode, uint8_t windo
     payload[1] = (uint8_t)mode;
     payload[2] = (uint8_t)window;
 
-    if(request(id, CMD_CLASSPOWER, payload, &size)!=MESH_OK)
+    if(request(&id, CMD_CLASSPOWER, payload, &size)!=MESH_OK)
         return MESH_ERROR;
 
     return MESH_OK;
 }
 
 mesh_status_t LoRaMESH::storeID(uint16_t id){
-    return storeID(id, _net, _uniqueId);
+    return storeID(id, 0, _uniqueId);
 }
 
 mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
@@ -206,7 +207,7 @@ mesh_status_t LoRaMESH::storeID(uint16_t id, uint16_t net, uint32_t uniqueID){
     uint2buffer(&payload[0], net);
     uint2buffer(&payload[2], uniqueID);
         
-    if(request(id, CMD_WRITECONFIG, payload, &size)!=MESH_OK)
+    if(request(&id, CMD_WRITECONFIG, payload, &size)!=MESH_OK)
         return MESH_ERROR;
 
     _id = id;
@@ -224,7 +225,7 @@ mesh_status_t LoRaMESH::storeNet(uint16_t net){
     payload[0] = 0x04;
     uint2buffer(&payload[1], net);
 
-    if(request(id, CMD_WRITEPASSWORD, payload, &size)!=MESH_OK)
+    if(request(&id, CMD_WRITEPASSWORD, payload, &size)!=MESH_OK)
         return MESH_ERROR;
 
     _net = net;
@@ -245,7 +246,7 @@ mesh_status_t LoRaMESH::configLoRa(uint16_t id, uint8_t power, uint8_t bw, uint8
     payload[3] = sf;
     payload[4] = cr;
 
-    if(request(id, CMD_LORAPARAMETER, payload, &size)!=MESH_OK)
+    if(request(&id, CMD_LORAPARAMETER, payload, &size)!=MESH_OK)
         return MESH_ERROR;
 
     // Checks if the parameters is correct
@@ -264,24 +265,24 @@ mesh_status_t LoRaMESH::getInfo(uint16_t id, uint8_t command, uint8_t *data, uin
     if(command != CMD_READRSSI  && command != CMD_TRACEROUTE &&
        command != CMD_READNOISE && command != CMD_DIAGNOSIS)
         return MESH_ERROR;
-    return request(id, command, data, size);
+    return request(&id, command, data, size);
 }
 
-mesh_status_t LoRaMESH::request(uint16_t id, uint8_t command, uint8_t *payload, uint8_t *size){
+mesh_status_t LoRaMESH::request(uint16_t *id, uint8_t command, uint8_t *payload, uint8_t *size){
     uint8_t rcvCommand;
 
     if (_hSerial==NULL) return MESH_ERROR;
 
-    if (id > MAX_VALUE)
+    if (*id > MAX_VALUE)
         return MESH_ERROR;
 
-    if (prepareFrame(id, command, payload, (*size))!=MESH_OK)
+    if (prepareFrame(*id, command, payload, (*size))!=MESH_OK)
         return MESH_ERROR;
     
     sendPacket();
     serialFlush();
 
-    if (receivePacket(&id, &rcvCommand, payload, size, 5000)!=MESH_OK)
+    if (receivePacket(id, &rcvCommand, payload, size, 5000)!=MESH_OK)
         return MESH_ERROR;
 
     // Checks if it is a response to the command

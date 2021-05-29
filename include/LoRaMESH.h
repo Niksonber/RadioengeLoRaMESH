@@ -181,7 +181,7 @@ protected:
 
     /// Prepare frame, send and check if respose is the same command @return MESH_ERROR if some error occured else MESH_OK
     /// @param id Device's ID @param command Command byte e.g. CMD_CLASSPOWER @param payload: Pointer to payload array @param payloadsize: payload size
-    LoRaMESHNS::mesh_status_t request(uint16_t id, uint8_t command, uint8_t *payload, uint8_t *size);    
+    LoRaMESHNS::mesh_status_t request(uint16_t *id, uint8_t command, uint8_t *payload, uint8_t *size);    
 
     void serialFlush();
     void print(uint8_t * buffer, size_t size);
